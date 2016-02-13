@@ -15,11 +15,13 @@
  */
 
 // Module boilerplate to support browser globals and browserify and AMD.
+/*
 (typeof define === 'function' ? function (m) { define('Wampy', m); } :
     typeof exports === 'object' ? function (m) { module.exports = m(); } :
     function (m) { this.Wampy = m(); }
 )(function () {
-
+*/
+function factory(root) {
     var WAMP_MSG_SPEC = {
             HELLO: 1,
             WELCOME: 2,
@@ -189,10 +191,10 @@
         } else {    // we're in browser
             if ('WebSocket' in root) {
                 // Chrome, MSIE, newer Firefox
-                return new window.WebSocket(parsedUrl, protocols);
+                return new root.WebSocket(parsedUrl, protocols);
             } else if ('MozWebSocket' in root) {
                 // older versions of Firefox
-                return new window.MozWebSocket(parsedUrl, protocols);
+                return new root.MozWebSocket(parsedUrl, protocols);
             }
         }
 
@@ -458,7 +460,7 @@
      */
     Wampy.prototype._log = function () {
         if (this._options.debug) {
-            console.log(arguments);
+            root.console.log(arguments);
         }
     };
 
@@ -1784,6 +1786,13 @@
 
     };
 
-    return Wampy;
+    // export Wampy
+    root.Wampy = Wampy;
 
-});
+};
+
+/**
+ * We need to atach Wampy to the specified root object.
+ * For the iMacros environment it should be the Sandbox object itself
+ */
+module.exports = factory;
