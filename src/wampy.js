@@ -210,12 +210,6 @@
             this._protocols = ['wamp.2.json'];
 
             /**
-             * Supported authentication methods
-             * @type {array}
-             */
-            this._authmethods = ['wampcra'];
-
-            /**
              * WAMP features, supported by Wampy
              * @type {object}
              * @private
@@ -403,6 +397,12 @@
                  * @type {string}
                  */
                 authid: null,
+
+                /**
+                 * Supported authentication methods: wampcra or ticket
+                 * @type {array}
+                 */
+                authmethods: null,
 
                 /**
                  * onConnect callback
@@ -648,7 +648,7 @@
             const options = this._merge(this._options.helloCustomDetails, this._wamp_features);
 
             if (this._options.authid) {
-                options.authmethods = this._authmethods;
+                options.authmethods = this._options.authmethods;
                 options.authid = this._options.authid;
             }
 
