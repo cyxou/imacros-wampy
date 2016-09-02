@@ -1,4 +1,32 @@
 /**
+ * JS module implementation of setTimeout.
+ */
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+Cu.import('resource://gre/modules/Promise.jsm');
+
+// This gives us >=2^30 unique timer IDs, enough for 1 per ms for 12.4 days.
+let gNextId = 1; // setTimeout and setInterval must return a positive integer
+
+let gTimerTable = new Map(); // int -> nsITimer
+
+function setTimeout(aCallback, aMilliseconds) {
+  let id = gNextId++;
+  let args = Array.slice(arguments, 2);
+  let timer = Cc['@mozilla.org/timer;1'].createInstance(Ci.nsITimer);
+  timer.initWithCallback(function setTimeout_timer() {
+    gTimerTable.delete(id);
+    aCallback.apply(null, args);
+  }, aMilliseconds, timer.TYPE_ONE_SHOT);
+
+  gTimerTable.set(id, timer);
+  return id;
+};
+
+/**
  * Project: wampy.js
  *
  * https://github.com/KSDaemon/wampy.js
@@ -15,20 +43,6 @@
  */
 
 'use strict';
-
-// Module boilerplate to support browser globals and browserify and AMD.
-(function (root, m) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(['exports'], m);
-    } else if (typeof exports === 'object' && typeof exports.nodeName !== 'string') {
-        // CommonJS
-        module.exports = m();
-    } else {
-        // Browser globals
-        root.Wampy = m();
-    }
-}(this, function () {
 
     const WAMP_MSG_SPEC = {
             HELLO: 1,
@@ -668,7 +682,6 @@
         }
 
         _wsOnClose () {
-            const root = isNode ? global : window;
             this._log('[wampy] websocket disconnected');
 
             // Automatic reconnection
@@ -676,7 +689,7 @@
                 this._options.autoReconnect && this._cache.reconnectingAttempts < this._options.maxRetries &&
                 !this._cache.isSayingGoodbye) {
                 this._cache.sessionId = null;
-                this._cache.timer = root.setTimeout(() => { this._wsReconnect(); }, this._options.reconnectInterval);
+                this._cache.timer = setTimeout(() => { this._wsReconnect(); }, this._options.reconnectInterval);
             } else {
                 // No reconnection needed or reached max retries count
                 if (this._options.onClose) {
@@ -689,7 +702,7 @@
         }
 
         _wsOnMessage (event) {
-            let data, id, i, msg, p;
+            let data, id, i, msg;
 
             this._log('[wampy] websocket message received', event.data);
 
@@ -738,16 +751,13 @@
 
                     if (this._options.authid && typeof this._options.onChallenge === 'function') {
 
-                        p = new Promise((resolve, reject) => {
-                            resolve(this._options.onChallenge(data[1], data[2]));
-                        });
-
-                        p.then((key) => {
+                        Promise.resolve(this._options.onChallenge(data[1], data[2]))
+                        .then(key => {
 
                             // Sending directly 'cause it's a challenge msg and no sessionId check is needed
                             this._ws.send(this._encode([WAMP_MSG_SPEC.AUTHENTICATE, key, {}]));
 
-                        }).catch(e => {
+                        }, e => {
                             this._ws.send(this._encode([
                                 WAMP_MSG_SPEC.ABORT,
                                 { message: 'Exception in onChallenge handler raised!' },
@@ -963,11 +973,8 @@
                         // WAMP SPEC: [INVOCATION, Request|id, REGISTERED.Registration|id,
                         //             Details|dict, CALL.Arguments|list, CALL.ArgumentsKw|dict]
 
-                        p = new Promise((resolve, reject) => {
-                            resolve(this._rpcRegs[data[2]].callbacks[0](data[4], data[5], data[3]));
-                        });
-
-                        p.then((results) => {
+                        Promise.resolve(this._rpcRegs[data[2]].callbacks[0](data[4], data[5], data[3]))
+                        .then(results => {
                             // WAMP SPEC: [YIELD, INVOCATION.Request|id, Options|dict, (Arguments|list, ArgumentsKw|dict)]
                             if (results) {
                                 if (this._isArray(results[1])) {
@@ -984,7 +991,7 @@
                             }
                             this._send(msg);
 
-                        }).catch(e => {
+                        }, e => {
                             this._send([WAMP_MSG_SPEC.ERROR, WAMP_MSG_SPEC.INVOCATION,
                                         data[1], {}, 'wamp.error.invocation_exception']);
                         });
@@ -1794,6 +1801,4 @@
         }
     }
 
-    return Wampy;
-
-}));
+let EXPORTED_SYMBOLS = ['Wampy'];
