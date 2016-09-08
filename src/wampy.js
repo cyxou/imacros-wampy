@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * JS module implementation of setTimeout.
  */
@@ -7,6 +9,7 @@ const Cu = Components.utils;
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Promise.jsm');
+Cu.import('resource://gre/modules/devtools/Console.jsm');
 
 // This gives us >=2^30 unique timer IDs, enough for 1 per ms for 12.4 days.
 let gNextId = 1; // setTimeout and setInterval must return a positive integer
@@ -42,7 +45,6 @@ function setTimeout(aCallback, aMilliseconds) {
  *
  */
 
-'use strict';
 
     const WAMP_MSG_SPEC = {
             HELLO: 1,

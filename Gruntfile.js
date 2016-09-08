@@ -1,6 +1,7 @@
 module.exports = function (grunt) {
 
     require('load-grunt-tasks')(grunt);
+    require('google-closure-compiler').grunt(grunt);
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -14,6 +15,18 @@ module.exports = function (grunt) {
                     'build/wampy.js': 'src/wampy.js'
                 }
             }
+        },
+        'closure-compiler': {
+          wampy: {
+            files: {
+              'build/wampy.js': ['src/wampy.js']
+            },
+            options: {
+              compilation_level: 'SIMPLE',
+              language_out: 'ECMASCRIPT5_STRICT',
+              formatting: 'pretty_print'
+            }
+          }
         },
         replace: {
             dist: {
@@ -57,5 +70,5 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('default', ['babel', 'replace', 'uglify', 'copy', 'concat']);
+    grunt.registerTask('default', ['closure-compiler', 'replace', 'copy', 'concat']);
 };
