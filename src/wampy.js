@@ -532,7 +532,7 @@ function setTimeout(aCallback, aMilliseconds) {
          * @private
          */
         _isArray (obj) {
-            return (!!obj) && (obj.constructor === Array);
+            return (!!obj) && (Array.isArray(obj));
         }
 
         /**
@@ -542,7 +542,7 @@ function setTimeout(aCallback, aMilliseconds) {
          * @private
          */
         _isPlainObject (obj) {
-            return (!!obj) && (obj.constructor === Object);
+            return (!!obj) && (obj === Object(obj));
         }
 
         /**
