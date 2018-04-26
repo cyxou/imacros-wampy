@@ -1,4 +1,5 @@
-import { isNode } from './constants';
+const Cu = Components.utils;
+const { ALLOWED_BINARY_TYPES } = Cu.import('resource://getbot/wampy/constants.js', {});
 
 function getServerUrlBrowser (url) {
     let scheme, port;
@@ -28,24 +29,18 @@ function getServerUrlNode (url) {
     }
 }
 
-export function getWebSocket (url, protocols, ws) {
-    const parsedUrl = isNode ? getServerUrlNode(url) : getServerUrlBrowser(url);
-
-    if (!parsedUrl) {
-        return null;
-    }
-
+function getWebSocket (url, protocols, ws) {
     if (ws) {   // User provided webSocket class
-        return new ws(parsedUrl, protocols);
-    } else if (isNode) {    // we're in node, but no webSocket provided
-        return null;
+        return new ws(url, protocols);
     } else if ('WebSocket' in window) {
         // Chrome, MSIE, newer Firefox
-        return new window.WebSocket(parsedUrl, protocols);
+        return new window.WebSocket(url, protocols);
     } else if ('MozWebSocket' in window) {
         // older versions of Firefox
-        return new window.MozWebSocket(parsedUrl, protocols);
+        return new window.MozWebSocket(url, protocols);
     }
 
     return null;
 }
+
+const EXPORTED_SYMBOLS = ['getWebSocket'];

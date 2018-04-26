@@ -1,4 +1,4 @@
-export const WAMP_MSG_SPEC = {
+const WAMP_MSG_SPEC = {
     HELLO: 1,
     WELCOME: 2,
     ABORT: 3,
@@ -25,7 +25,7 @@ export const WAMP_MSG_SPEC = {
     YIELD: 70
 };
 
-export const WAMP_ERROR_MSG = {
+const WAMP_ERROR_MSG = {
     SUCCESS: {
         code: 0,
         description: 'Success!'
@@ -92,6 +92,6 @@ export const WAMP_ERROR_MSG = {
     }
 };
 
-export const ALLOWED_BINARY_TYPES = ['blob', 'arraybuffer'];
+const ALLOWED_BINARY_TYPES = ['blob', 'arraybuffer'];
 
-export const isNode = (typeof process === 'object' && Object.prototype.toString.call(process) === '[object process]');
+const EXPORTED_SYMBOLS = ['WAMP_MSG_SPEC', 'WAMP_ERROR_MSG', 'ALLOWED_BINARY_TYPES'];

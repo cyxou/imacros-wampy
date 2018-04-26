@@ -1,12 +1,6 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var WAMP_MSG_SPEC = exports.WAMP_MSG_SPEC = {
+var WAMP_MSG_SPEC = {
     HELLO: 1,
     WELCOME: 2,
     ABORT: 3,
@@ -33,7 +27,7 @@ var WAMP_MSG_SPEC = exports.WAMP_MSG_SPEC = {
     YIELD: 70
 };
 
-var WAMP_ERROR_MSG = exports.WAMP_ERROR_MSG = {
+var WAMP_ERROR_MSG = {
     SUCCESS: {
         code: 0,
         description: 'Success!'
@@ -100,7 +94,7 @@ var WAMP_ERROR_MSG = exports.WAMP_ERROR_MSG = {
     }
 };
 
-var ALLOWED_BINARY_TYPES = exports.ALLOWED_BINARY_TYPES = ['blob', 'arraybuffer'];
+var ALLOWED_BINARY_TYPES = ['blob', 'arraybuffer'];
 
-var isNode = exports.isNode = (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === 'object' && Object.prototype.toString.call(process) === '[object process]';
+var EXPORTED_SYMBOLS = ['WAMP_MSG_SPEC', 'WAMP_ERROR_MSG', 'ALLOWED_BINARY_TYPES'];
 //# sourceMappingURL=constants.js.map

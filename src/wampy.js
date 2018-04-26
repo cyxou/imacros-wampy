@@ -1,3 +1,9 @@
+const Cu = Components.utils;
+
+// Import things from JSmodules as these are absent in Browser Add-on environment.
+const { setTimeout } = Cu.import('resource://gre/modules/Timer.jsm', {});
+const { console }    = Cu.import('resource://gre/modules/devtools/Console.jsm', {});
+
 /**
  * Project: wampy.js
  *
@@ -14,9 +20,9 @@
  *
  */
 
-import { WAMP_MSG_SPEC, WAMP_ERROR_MSG } from './constants';
-import { getWebSocket } from './utils';
-import { JsonSerializer } from './serializers/JsonSerializer';
+const { WAMP_MSG_SPEC, WAMP_ERROR_MSG } = Cu.import('resource://getbot/wampy/constants.js', {});
+const { getWebSocket } = Cu.import('resource://getbot/wampy/utils.js', {});
+const { JsonSerializer } = Cu.import('resource://getbot/wampy/serializers/JsonSerializer.js', {});
 
 /**
  * WAMP Client Class
@@ -364,7 +370,7 @@ class Wampy {
      * @private
      */
     _isPlainObject (obj) {
-        return (!!obj) && (obj.constructor === Object);
+        return (!!obj) && (obj === Object(obj));
     }
 
     /**
@@ -1783,5 +1789,4 @@ class Wampy {
     }
 }
 
-export default Wampy;
-export { Wampy };
+const EXPORTED_SYMBOLS = ['Wampy'];

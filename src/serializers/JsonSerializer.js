@@ -1,4 +1,4 @@
-export class JsonSerializer {
+class JsonSerializer {
 
     constructor () {
         this.protocol = 'json';
@@ -15,3 +15,5 @@ export class JsonSerializer {
         });
     }
 }
+
+const EXPORTED_SYMBOLS = ['JsonSerializer'];
