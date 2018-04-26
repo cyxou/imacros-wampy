@@ -4,22 +4,22 @@
  * Date: 22.06.17
  */
 
+const isNode = typeof process === 'object' &&
+    Object.prototype.toString.call(process) === '[object process]';
+
 import { expect } from 'chai';
 const utils = require('./../src/utils');
-let getWebSocket = utils.getWebSocket, isBinaryTypeAllowed = utils.isBinaryTypeAllowed;
+let getWebSocket = utils.getWebSocket;
 const mock = require('mock-require');
 
 describe('Wampy.js Utils submodule', function () {
     this.timeout(0);
 
-    it('checks for valid payload data types', function () {
-        expect(isBinaryTypeAllowed('blob')).to.be.true;
-        expect(isBinaryTypeAllowed('arraybuffer')).to.be.true;
-        expect(isBinaryTypeAllowed('text')).to.be.false;
-        expect(isBinaryTypeAllowed('data')).to.be.false;
-    });
-
     describe('In node enviroment', function () {
+
+        if (!isNode) {
+            return;
+        }
 
         it('disallows to create websocket object without providing url', function () {
             expect(getWebSocket()).to.be.null;
@@ -42,7 +42,11 @@ describe('Wampy.js Utils submodule', function () {
 
     });
 
-    describe('In browser enviroment', function () {
+    describe('In browser enviroment (node-mock)', function () {
+
+        if (!isNode) {
+            return;
+        }
 
         before(function () {
             mock('./../src/constants', { isNode: false });
@@ -178,6 +182,46 @@ describe('Wampy.js Utils submodule', function () {
             delete global.window;
         });
 
+    });
+
+    describe('In browser environment (real)', () => {
+
+        if (isNode) {
+            return;
+        }
+
+        it('allows to create websocket object without providing url', function () {
+            let ws = getWebSocket();
+
+            expect(ws.url).to.be.equal('ws://localhost:9876/ws');
+
+        });
+
+        it('allows to create websocket object with just path in url', function () {
+            let ws = getWebSocket('/websocket/wamp');
+
+            expect(ws.url).to.be.equal('ws://localhost:9876/websocket/wamp');
+        });
+
+        it('allows to create websocket object with domain+path url', function () {
+
+            let ws = getWebSocket('example.com/websocket/wamp');
+
+            expect(ws.url).to.be.equal('ws://example.com/websocket/wamp');
+
+        });
+
+        it('allows to create websocket object with full qualified url', function () {
+
+            let ws = getWebSocket('ws://example.com/websocket/wamp');
+
+            expect(ws.url).to.be.equal('ws://example.com/websocket/wamp');
+
+            ws = getWebSocket('wss://example.com/websocket/wamp');
+
+            expect(ws.url).to.be.equal('wss://example.com/websocket/wamp');
+
+        });
     });
 
 });

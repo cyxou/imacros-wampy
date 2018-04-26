@@ -1,2 +1,4 @@
 coverage/
 dist/browser*
+!/.crossbar/config.json
+.crossbar/

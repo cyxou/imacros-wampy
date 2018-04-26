@@ -4,11 +4,10 @@
  * Date: 07.04.15
  */
 
-const routerUrl = 'ws://fake.server.org/ws/',
-    anotherRouterUrl = 'ws://another.server.org/ws/',
-    root = (typeof process === 'object' &&
-    Object.prototype.toString.call(process) === '[object process]') ?
-        global : window;
+const isNode = typeof process === 'object' &&
+    Object.prototype.toString.call(process) === '[object process]',
+    routerUrl = 'ws://fake.server.org/ws/',
+    anotherRouterUrl = 'ws://another.server.org/ws/';
 
 import { expect } from 'chai';
 import * as WebSocketModule from './fake-ws';
@@ -17,7 +16,7 @@ import { JsonSerializer } from '../src/serializers/JsonSerializer';
 import { WAMP_ERROR_MSG } from './../src/constants';
 
 describe('Wampy.js [with JSON serializer]', function () {
-    this.timeout(0);
+    this.timeout(10000);
 
     before(function () {
         WebSocketModule.startTimers();
@@ -47,30 +46,30 @@ describe('Wampy.js [with JSON serializer]', function () {
                     customFiled3: [1, 2, 3, 4, 5]
                 },
                 setoptions = {
-                    autoReconnect     : true,
-                    reconnectInterval : 10000,
-                    maxRetries        : 50,
-                    realm             : 'AppRealm',
+                    autoReconnect: true,
+                    reconnectInterval: 10000,
+                    maxRetries: 50,
+                    realm: 'AppRealm',
                     helloCustomDetails: helloCustomDetails,
-                    onChallenge       : function () {
+                    onChallenge: function () {
                         done('Reached onChallenge');
                     },
-                    authid            : 'userid',
-                    authmethods       : ['wampcra'],
-                    onConnect         : done,
-                    onClose           : function () {
+                    authid: 'userid',
+                    authmethods: ['wampcra'],
+                    onConnect: done,
+                    onClose: function () {
                         done('Reached onClose');
                     },
-                    onError           : function () {
+                    onError: function () {
                         done('Reached onError');
                     },
-                    onReconnect       : function () {
+                    onReconnect: function () {
                         done('Reached onReconnect');
                     },
                     onReconnectSuccess: function () {
                         done('Reached onReconnectSuccess');
                     },
-                    ws                : WebSocketModule.WebSocket
+                    ws: WebSocketModule.WebSocket
                 },
                 wampy = new Wampy(setoptions),
                 options = wampy.options();
@@ -135,6 +134,202 @@ describe('Wampy.js [with JSON serializer]', function () {
             expect(wampy).to.be.an('object');
         });
 
+        it('drops connection on receiving WELCOME message after session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received WELCOME message after session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving CHALLENGE message after session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received CHALLENGE message after session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving GOODBYE message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received GOODBYE message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving ERROR message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received ERROR message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving invalid ERROR message after session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received invalid ERROR message');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving SUBSCRIBED message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received SUBSCRIBED message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving UNSUBSCRIBED message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received UNSUBSCRIBED message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving PUBLISHED message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received PUBLISHED message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving EVENT message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received EVENT message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving RESULT message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received RESULT message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving REGISTERED message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received REGISTERED message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving UNREGISTERED message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received UNREGISTERED message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving INVOCATION message before session was established', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received INVOCATION message before session was established');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
+        it('drops connection on receiving non-compliant WAMP message', function (done) {
+            let wampy = new Wampy(routerUrl, {
+                realm: 'AppRealm',
+                autoReconnect: false,
+                onClose: done,
+                onError: function (e) {
+                    expect(e).to.be.an('object');
+                    expect(e.error).to.be.equal('wamp.error.protocol_violation');
+                    expect(e.details).to.be.equal('Received non-compliant WAMP message');
+                },
+                ws: WebSocketModule.WebSocket
+            });
+        });
+
     });
 
     describe('Instance', function () {
@@ -167,6 +362,11 @@ describe('Wampy.js [with JSON serializer]', function () {
         });
 
         it('disallows to connect to a router if no url was specified during instantiation', function () {
+
+            if (!isNode) {
+                return;
+            }
+
             let wampy = new Wampy({ realm: 'AppRealm' }),
                 opStatus = wampy.connect().getOpStatus();
 
@@ -180,14 +380,14 @@ describe('Wampy.js [with JSON serializer]', function () {
                     customFiled3: [1, 2, 3, 4, 5]
                 },
                 options = wampy.options({
-                    autoReconnect: true,
-                    reconnectInterval: 1000,
-                    maxRetries: 5,
+                    autoReconnect     : true,
+                    reconnectInterval : 1000,
+                    maxRetries        : 5,
                     helloCustomDetails: helloCustomDetails,
-                    onChallenge: function () {
+                    onChallenge       : function () {
                     },
-                    authid: 'userid',
-                    authmethods: ['wampcra'],
+                    authid            : 'userid',
+                    authmethods       : ['wampcra'],
                 }).options();
 
             expect(options.autoReconnect).to.be.true;
@@ -294,7 +494,7 @@ describe('Wampy.js [with JSON serializer]', function () {
                 onClose: done
             }).connect();
 
-            root.setTimeout(function () {
+            setTimeout(function () {
                 wampy.disconnect();
             }, 10);
         });
@@ -307,7 +507,7 @@ describe('Wampy.js [with JSON serializer]', function () {
         it('allows to connect to different WAMP server', function (done) {
             wampy.options({
                 onClose: function () {
-                    root.setTimeout(function () {
+                    setTimeout(function () {
                         wampy.connect(anotherRouterUrl);
                     }, 1);
                 },
@@ -318,11 +518,11 @@ describe('Wampy.js [with JSON serializer]', function () {
         it('allows to abort WebSocketModule.WebSocket/WAMP session establishment', function (done) {
             wampy.options({
                 onClose: function () {
-                    root.setTimeout(function () {
+                    setTimeout(function () {
                         wampy.options({ onClose: done })
                             .connect(anotherRouterUrl);
 
-                        root.setTimeout(function () {
+                        setTimeout(function () {
                             wampy.abort();
                         }, 1);
 
@@ -390,9 +590,9 @@ describe('Wampy.js [with JSON serializer]', function () {
                 onError: function () {
                 },
                 onReconnect: function () {
-                    let t = root.setInterval(function () {
+                    let t = setInterval(function () {
                         if (wampy._subsTopics.size === 2 && wampy._rpcNames.size === 3) {
-                            root.clearInterval(t);
+                            clearInterval(t);
                             t = null;
                             wampy.options({ onReconnect: null })
                                 .subscribe('subscribe.reconnection.check', {
@@ -415,7 +615,7 @@ describe('Wampy.js [with JSON serializer]', function () {
             wampy.options({
                 autoReconnect: true,
                 onClose: function () {
-                    root.setTimeout(function () {
+                    setTimeout(function () {
                         wampy.connect();
                     }, 1);
                 },
@@ -432,7 +632,7 @@ describe('Wampy.js [with JSON serializer]', function () {
             wampy.options({
                 autoReconnect: false,
                 onClose: function () {
-                    root.setTimeout(function () {
+                    setTimeout(function () {
                         wampy.connect();
                     }, 1);
                 },
@@ -516,13 +716,9 @@ describe('Wampy.js [with JSON serializer]', function () {
             it('disallows to subscribe to topic with invalid URI', function (done) {
                 wampy.options({
                     onClose: function () {
-                        root.setTimeout(function () {
+                        setTimeout(function () {
                             wampy.options({
                                 onConnect: function () {
-
-                                    wampy.subscribe('q.w.e', function (e) {
-                                    });
-                                    expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
 
                                     wampy.subscribe('qwe.asd.zxc.', function (e) {
                                     });
@@ -540,11 +736,7 @@ describe('Wampy.js [with JSON serializer]', function () {
                                     });
                                     expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
 
-                                    wampy.subscribe('q.w.e', function (e) {
-                                    });
-                                    expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
-
-                                    wampy.subscribe('q.w.e',
+                                    wampy.subscribe('qwe.asd.zxc.',
                                         {
                                             onSuccess: function (e) {
                                             },
@@ -602,6 +794,42 @@ describe('Wampy.js [with JSON serializer]', function () {
                     onSuccess: function (e) {
                     }
                 });
+                expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
+            });
+
+            it('allows to subscribe to prefix-based topic', function (done) {
+                let i = 1;
+                wampy.subscribe('subscribe.prefix', function (e) {
+                    expect(e).to.be.an('object');
+
+                    if (i === 2) {
+                        expect(e.details).to.have.property('topic', 'subscribe.prefix.two.three');
+                        done();
+                    } else {
+                        expect(e.details).to.have.property('topic', 'subscribe.prefix.one');
+                        i++;
+                    }
+                }, { match: 'prefix' })
+                    .publish('subscribe.prefix.one', null, { exclude_me: false })
+                    .publish('subscribe.prefix.two.three', null, { exclude_me: false });
+                expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
+            });
+
+            it('allows to subscribe to wildcard-based topic', function (done) {
+                let i = 1;
+                wampy.subscribe('subscribe..wildcard', function (e) {
+                    expect(e).to.be.an('object');
+
+                    if (i === 2) {
+                        expect(e.details).to.have.property('topic', 'subscribe.two.wildcard');
+                        done();
+                    } else {
+                        expect(e.details).to.have.property('topic', 'subscribe.one.wildcard');
+                        i++;
+                    }
+                }, { match: 'wildcard' })
+                    .publish('subscribe.one.wildcard', null, { exclude_me: false })
+                    .publish('subscribe.two.wildcard', null, { exclude_me: false });
                 expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
             });
 
@@ -756,9 +984,6 @@ describe('Wampy.js [with JSON serializer]', function () {
             });
 
             it('disallows to publish event to topic with invalid URI', function () {
-                wampy.publish('q.w.e', 'payload');
-                expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
-
                 wampy.publish('qwe.asd.zxc.', 'payload');
                 expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
 
@@ -1033,7 +1258,7 @@ describe('Wampy.js [with JSON serializer]', function () {
             before(function (done) {
                 wampy.options({
                     onClose: function () {
-                        root.setTimeout(function () {
+                        setTimeout(function () {
                             wampy.options({
                                 onConnect: function () {
                                     done();
@@ -1115,15 +1340,11 @@ describe('Wampy.js [with JSON serializer]', function () {
             it('disallows to register RPC with invalid URI', function (done) {
                 wampy.options({
                     onClose: function () {
-                        root.setTimeout(function () {
+                        setTimeout(function () {
                             wampy.connect();
                         }, 1);
                     },
                     onConnect: function () {
-
-                        wampy.register('q.w.e', function (e) {
-                        });
-                        expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
 
                         wampy.register('qwe.asd.zxc.', function (e) {
                         });
@@ -1159,11 +1380,41 @@ describe('Wampy.js [with JSON serializer]', function () {
                 }).disconnect();
             });
 
+            it('checks for valid advanced options during RPC registration', function () {
+                wampy.register(
+                    'qqq.www.eee',
+                    {
+                        rpc: function (e) { },
+                        onSuccess: function (e) { },
+                        onError: function (e) {
+                            expect(e).to.have.property('error', WAMP_ERROR_MSG.INVALID_PARAM.description);
+                        }
+                    },
+                    {
+                        match: 'invalidoption',
+                        invoke: 'invalidoption'
+                    }
+                );
+                expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.INVALID_PARAM);
+                wampy.register(
+                    'qqq.www.eee',
+                    {
+                        rpc: function (e) { },
+                        onSuccess: function (e) { },
+                        onError: function (e) {
+                            expect(e).to.have.property('error', WAMP_ERROR_MSG.INVALID_PARAM.description);
+                        }
+                    },
+                    'string instead of object'
+                );
+                expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.INVALID_PARAM);
+            });
+
             it('allows to register RPC', function (done) {
                 wampy.register('register.rpc1', function (e) {
                 });
                 expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
-                root.setTimeout(function () {
+                setTimeout(function () {
                     done();
                 }, 10);
             });
@@ -1181,6 +1432,48 @@ describe('Wampy.js [with JSON serializer]', function () {
                 });
             });
 
+            it('allows to register prefix-based RPC', function (done) {
+                wampy.register('register.prefix', {
+                    rpc: function (e) {
+                    },
+                    onSuccess: function () {
+                        done();
+                    },
+                    onError: function () {
+                        done('Error during RPC registration');
+                    }
+                }, { match: 'prefix' });
+                expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
+            });
+
+            it('allows to register wildcard-based RPC', function (done) {
+                wampy.register('register..wildcard', {
+                    rpc: function (e) {
+                    },
+                    onSuccess: function () {
+                        done();
+                    },
+                    onError: function () {
+                        done('Error during RPC registration');
+                    }
+                }, { match: 'wildcard' });
+                expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
+            });
+
+            it('allows to specify invocation policy during RPC registration', function (done) {
+                wampy.register('register.invocation.policy', {
+                    rpc: function (e) {
+                    },
+                    onSuccess: function () {
+                        done();
+                    },
+                    onError: function () {
+                        done('Error during RPC registration');
+                    }
+                }, { invoke: 'roundrobin' });
+                expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
+            });
+
             it('disallows to register RPC with same name', function () {
                 wampy.register('register.rpc2', function (e) {
                 });
@@ -1188,10 +1481,6 @@ describe('Wampy.js [with JSON serializer]', function () {
             });
 
             it('disallows to call RPC with invalid URI', function () {
-                wampy.call('q.w.e', 'payload', function (e) {
-                });
-                expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
-
                 wampy.call('qwe.asd.zxc.', 'payload', function (e) {
                 });
                 expect(wampy.getOpStatus()).to.be.deep.equal(WAMP_ERROR_MSG.URI_ERROR);
@@ -1433,6 +1722,55 @@ describe('Wampy.js [with JSON serializer]', function () {
                 );
             });
 
+            it('checks options during canceling RPC invocation', function (done) {
+                let reqId;
+
+                wampy.call(
+                    'call.rpc8',
+                    'payload',
+                    {
+                        onSuccess: function (e) {
+                            expect(e).to.be.an('object');
+                            expect(e.argsList).to.be.an('array');
+
+                            wampy.cancel(reqId,
+                                {
+                                    onSuccess: function () {
+                                    },
+                                    onError: function (e) {
+                                        expect(e).to.be.an('object');
+                                        expect(e).to.have.property('error', WAMP_ERROR_MSG.INVALID_PARAM.description);
+                                    }
+                                },
+                                {
+                                    mode: 'falseoption'
+                                }
+                            );
+                            wampy.cancel(reqId,
+                                {
+                                    onSuccess: function () {
+                                    },
+                                    onError: function (e) {
+                                        expect(e).to.be.an('object');
+                                        expect(e).to.have.property('error', WAMP_ERROR_MSG.INVALID_PARAM.description);
+                                    }
+                                },
+                                'string_instead_of_object'
+                            );
+                            done();
+                        },
+                        onError: function (e) {
+                            done();
+                        }
+                    },
+                    {
+                        receive_progress: true
+                    }
+                );
+
+                reqId = wampy.getOpStatus().reqId;
+            });
+
             it('allows to cancel RPC invocation', function (done) {
                 let reqId;
 
@@ -1552,6 +1890,38 @@ describe('Wampy.js [with JSON serializer]', function () {
                 expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
             });
 
+            it('allows to invoke pattern-based RPC providing original uri in options', function (done) {
+                wampy.register('register.prefixbased', {
+                    rpc: function (e) {
+
+                        return new Promise(function (resolve, reject) {
+                            setTimeout(function () {
+                                expect(e.details).to.have.property('topic', 'register.prefixbased.maiden');
+                                resolve();
+                            }, 1);
+                        });
+                    },
+                    onSuccess: function (e) {
+                        wampy.call(
+                            'register.prefixbased.maiden',
+                            null,
+                            function (e) {
+                                expect(e).to.be.an('object');
+                                expect(e.details).to.be.an('object');
+                                expect(e.argsList).to.be.undefined;
+                                expect(e.argsDict).to.be.undefined;
+                                done();
+                            },
+                            { exclude_me: false }
+                        );
+                    },
+                    onError: function (e) {
+                        done('Error during RPC registration!');
+                    }
+                }, { match: 'prefix' });
+                expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
+            });
+
             it('allows to invoke asynchronous RPC with single value', function (done) {
                 wampy.register('register.rpc4', {
                     rpc: function (e) {
@@ -1634,6 +2004,53 @@ describe('Wampy.js [with JSON serializer]', function () {
                                 expect(e.argsDict).to.be.an('object');
                                 expect(e.argsDict).to.be.deep.equal(payload);
                                 done();
+                            },
+                            { exclude_me: false }
+                        );
+                    },
+                    onError: function (e) {
+                        done('Error during RPC registration!');
+                    }
+                });
+                expect(wampy.getOpStatus().code).to.be.equal(WAMP_ERROR_MSG.SUCCESS.code);
+            });
+
+            it('allows to return progressive results from asynchronous RPC', function (done) {
+                let payload = 1;
+                wampy.register('register.rpc61', {
+                    rpc: function (e) {
+
+                        return new Promise(function (resolve, reject) {
+                            for (let i = 1; i <= 5; i++) {
+                                (function (j, p) {
+                                    setTimeout(function () {
+                                        e.result_handler({ options: { progress: p }, argsList: j });
+                                    }, 10 * j);
+                                }(i, i < 5));
+                            }
+
+                            setTimeout(function () {
+                                resolve({ options: { progress: true }, argsList: 0 });
+                            }, 1);
+                        });
+                    },
+                    onSuccess: function (e) {
+                        wampy.call(
+                            'register.rpc61',
+                            payload,
+                            function (e) {
+                                expect(e).to.be.an('object');
+                                expect(e.argsList).to.be.an('array');
+                                expect(e.argsList).to.have.lengthOf(1);
+                                //expect(e.argsDict).to.be.undefined;
+
+                                if (e.argsList[0] < 5) {
+                                    expect(e.details.progress).to.be.true;
+                                } else {
+                                    expect(e.details.progress).to.be.false;
+                                    done();
+                                }
+
                             },
                             { exclude_me: false }
                         );

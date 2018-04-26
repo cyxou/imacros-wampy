@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var WAMP_MSG_SPEC = exports.WAMP_MSG_SPEC = {
     HELLO: 1,
@@ -53,10 +53,6 @@ var WAMP_ERROR_MSG = exports.WAMP_ERROR_MSG = {
     INVALID_PARAM: {
         code: 4,
         description: 'Invalid parameter(s) specified!'
-    },
-    INVALID_SERIALIZER_TYPE: {
-        code: 5,
-        description: 'Serializer with unsupported type provided!'
     },
     NO_SERIALIZER_AVAILABLE: {
         code: 6,

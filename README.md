@@ -51,18 +51,23 @@ autoreconnecting and use of Chaining Pattern. It has no external dependencies (b
 Wampy.js supports next WAMP roles and features:
 
 * Challenge Response Authentication (wampcra method)
-* publisher: advanced profile with features:
+* publisher:
     * subscriber blackwhite listing
     * publisher exclusion
     * publisher identification
-* subscriber: basic profile
-* caller: advanced profile with features:
+* subscriber:
+    * pattern-based subscription
+    * publication trust levels
+* caller:
     * caller identification
     * progressive call results
     * call canceling
     * call timeout
 * callee:
     * caller identification
+    * call trust levels
+    * pattern-based registration
+    * shared registration
 
 Wampy default serializer is JSON, but it also supports msgpack as serializer.
 In that case you need to include msgpack5.js as dependency. See [msgpack5][] for more info.
@@ -100,12 +105,10 @@ ws.publish('client.message', 'Hi guys!');
 Installation
 ============
 
-Wampy.js can be installed using npm or bower or just by file-copy :)
+Wampy.js can be installed using npm or just by file-copy :)
 
 ```bash
 > npm install wampy
-# Or
-> bower install wampy.js
 ```
 
 For simple browser usage just download latest [browser.zip](../../releases/latest) archive and 
@@ -123,7 +126,7 @@ In case, you don't plan to use msgpack, just include clean wampy.min.js.
 
 In case you are using any kind of build tools and bundlers, like grunt/gulp/webpack/rollup/etc, 
 your entry point can be **src/wampy.js** if you transpile you code somehow, or **dist/wampy.js** (default package 
-entry point) which is already transpiled to "es2015" preset, so it is working out of the box, just bundle modules.
+entry point) which is already transpiled to "env" preset, so it is working out of the box, just bundle modules.
 
 [Back to TOC](#table-of-contents)
 
@@ -174,10 +177,10 @@ Also, you can use your own serializer. Just be sure, it is supported on WAMP rou
 ```javascript
 // in browser
 ws = new Wampy('ws://socket.server.com:5000/ws', {
-    serializer: new WampyMsgpackSerializer(msgpack5)
+    serializer: new MsgpackSerializer(msgpack5)
 });
 ws = new Wampy({
-    serializer: new WampyMsgpackSerializer(msgpack5)
+    serializer: new MsgpackSerializer(msgpack5)
 });
 
 // in node.js
@@ -433,7 +436,7 @@ ws = new Wampy('ws://wamp.router.url', {
 
 [Back to TOC](#table-of-contents)
 
-subscribe(topicURI, callbacks)
+subscribe(topicURI, callbacks[, advancedOptions])
 -----------------------------
 
 Subscribes for topicURI events. Supports chaining.
@@ -442,8 +445,8 @@ Parameters:
 
 * **topicURI**. Required. A string that identifies the topic.
 Must meet a WAMP Spec URI requirements.
-* **callbacks**. If it is a function - it will be treated as published event callback o
-r it can be hash table of callbacks:
+* **callbacks**. If it is a function - it will be treated as published event callback or 
+it can be hash table of callbacks:
     * **onSuccess**: will be called when subscription would be confirmed
     * **onError**: will be called if subscription would be aborted with one hash-table parameter with following attributes:
         * **error**: string error description
@@ -452,6 +455,8 @@ r it can be hash table of callbacks:
         * **argsList**: array payload (may be omitted)
         * **argsDict**: object payload (may be omitted)
         * **details**: some publication options object. 
+* **advancedOptions**. Optional parameters hash table. Must include any or all of the options:
+    * **match**: string matching policy ("prefix"|"wildcard")
 
 ```javascript
 ws.subscribe('chat.message.received', function (msg) { console.log('Received new chat message!'); });
@@ -501,7 +506,10 @@ Parameters:
 
 * **topicURI**. Required. A string that identifies the topic.
 Must meet a WAMP Spec URI requirements.
-* **payload**. Publishing event data. Optional. May be any single value or array or hash-table object or null.
+* **payload**. Publishing event data. Optional. May be any single value or array or hash-table object or null. Also it
+is possible to pass array and object-like data simultaneously. In this case pass a hash-table with next attributes:
+    * **argsList**: array payload (may be omitted)
+    * **argsDict**: object payload (may be omitted)
 * **callbacks**. Optional hash table of callbacks:
     * **onSuccess**: will be called when publishing would be confirmed
     * **onError**: will be called if publishing would be aborted with one hash-table parameter with following attributes:
@@ -549,7 +557,10 @@ Parameters:
 
 * **topicURI**. Required. A string that identifies the remote procedure to be called.
 Must meet a WAMP Spec URI requirements.
-* **payload**. RPC data. Optional. May be any single value or array or hash-table object or null.
+* **payload**. RPC data. Optional. May be any single value or array or hash-table object or null. Also it
+is possible to pass array and object-like data simultaneously. In this case pass a hash-table with next attributes:
+    * **argsList**: array payload (may be omitted)
+    * **argsDict**: object payload (may be omitted)
 * **callbacks**. If it is a function - it will be treated as result callback function
              or it can be hash table of callbacks:
     * **onSuccess**: will be called with result on successful call with one hash-table parameter with following attributes: 
@@ -632,7 +643,7 @@ ws.cancel(status.reqId);
 
 [Back to TOC](#table-of-contents)
 
-register(topicURI, callbacks)
+register(topicURI, callbacks[, advancedOptions])
 -----------------------------------------------
 
 RPC registration for invocation. Supports chaining.
@@ -648,19 +659,28 @@ Must meet a WAMP Spec URI requirements.
     * **onError**: will be called if registration would be aborted with one hash-table parameter with following attributes:
         * **error**: string error description
         * **details**: hash-table with some error details
+* **advancedOptions**. Optional parameters hash table. Must include any or all of the options:
+    * **match**: string matching policy ("prefix"|"wildcard")
+    * **invoke**: string invocation policy ("single"|"roundrobin"|"random"|"first"|"last")
 
-Registered PRC during invocation will receive one hash-table argument with following attributes: 
-    * **argsList**: array payload (may be omitted)
-    * **argsDict**: object payload (may be omitted)
-    * **details**: some invocation options object. One attribute of interest in options is "receive_progress" (boolean), 
-which indicates, that caller is willing to receive progressive results, if possible. 
+Registered PRC during invocation will receive one hash-table argument with following attributes:
+ 
+* **argsList**: array payload (may be omitted)
+* **argsDict**: object payload (may be omitted)
+* **details**: some invocation options object. One attribute of interest in options is "receive_progress" (boolean), 
+which indicates, that caller is willing to receive progressive results, if possible. Another one is "trustlevel", which 
+indicates the call trust level, assigned by dealer (of course if it is configured accordingly).
+* **result_handler**: result handler for case when you want to send progressive results. Just call it with one parameter,
+same as you return from simple invocation. Also do not forget to set options: { progress: true } for intermediate results.
+* **error_handler**: error handler for case when you want to send progressive results and cought some exception or error.
 
 RPC can return no result (undefined), or it must return an object with next attributes:
-    * **argsList**: array result or single value, (may be omitted)
-    * **argsDict**: object result payload (may be omitted)
-    * **options**: some result options object. Possible attribute of options is "progress": true, which
-   indicates, that it's a progressive result, so there will be more results in future. Be sure to unset "progress"
-   on last result message. 
+
+* **argsList**: array result or single value, (may be omitted)
+* **argsDict**: object result payload (may be omitted)
+* **options**: some result options object. Possible attribute of options is "progress": true, which
+indicates, that it's a progressive result, so there will be more results in future. Be sure to unset "progress"
+on last result message. 
 
 ```javascript
 const sqrt_f = function (data) { return { argsList: data.argsList[0]*data.argsList[0] } };
@@ -781,7 +801,7 @@ Custom serializer instance must meet a few requirements:
 * Have a `decode (data)` method, that returns decoded data
 * Have a `protocol` string property, that contains a protocol name. This name is concatenated with "wamp.2." string and
  is then passed as websocket subprotocol http header.
-* Have a `binaryType` string property, that contains a serialized data type. Allowed options are: ['blob', 'arraybuffer'].
+* Have a `isBinary` boolean property, that indicates, is this a binary protocol or not.
 
 Take a look at [JsonSerializer.js](src/serializers/JsonSerializer.js) or 
 [MsgpackSerializer.js](src/serializers/MsgpackSerializer.js) as examples.

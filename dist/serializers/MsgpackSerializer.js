@@ -22,7 +22,7 @@ var MsgpackSerializer = exports.MsgpackSerializer = function () {
         _classCallCheck(this, MsgpackSerializer);
 
         this.protocol = 'msgpack';
-        this.binaryType = 'arraybuffer';
+        this.isBinary = true;
     }
 
     _createClass(MsgpackSerializer, [{
@@ -33,7 +33,22 @@ var MsgpackSerializer = exports.MsgpackSerializer = function () {
     }, {
         key: 'decode',
         value: function decode(data) {
-            return msgpack.decode(new Uint8Array(data));
+            return new Promise(function (resolve) {
+
+                var type = data.constructor.name;
+
+                if (type === 'ArrayBuffer' || type === 'Buffer') {
+                    resolve(msgpack.decode(new Uint8Array(data)));
+                } else {
+                    var reader = new FileReader();
+
+                    reader.onload = function () {
+                        resolve(msgpack.decode(new Uint8Array(this.result)));
+                    };
+
+                    reader.readAsArrayBuffer(data);
+                }
+            });
         }
     }]);
 

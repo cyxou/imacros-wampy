@@ -13,7 +13,7 @@ var JsonSerializer = exports.JsonSerializer = function () {
         _classCallCheck(this, JsonSerializer);
 
         this.protocol = 'json';
-        this.binaryType = 'blob';
+        this.isBinary = true;
     }
 
     _createClass(JsonSerializer, [{
@@ -24,7 +24,9 @@ var JsonSerializer = exports.JsonSerializer = function () {
     }, {
         key: 'decode',
         value: function decode(data) {
-            return JSON.parse(data);
+            return new Promise(function (resolve) {
+                resolve(JSON.parse(data));
+            });
         }
     }]);
 

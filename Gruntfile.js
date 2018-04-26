@@ -13,7 +13,7 @@ module.exports = function (grunt) {
                 files: [{
                     expand: true,
                     cwd: 'src/',
-                    src: ['**/*.js', '!browser.js'],
+                    src: ['**/*.js', '!*browser.js'],
                     dest: 'dist/'
                 }]
             }
@@ -21,10 +21,11 @@ module.exports = function (grunt) {
         browserify: {
             dist4Browser: {
                 options     : {
-                    transform: [['babelify', { 'presets': ['es2015'] }]]
+                    transform: [['babelify', { 'presets': ['env'] }]]
                 },
                 files  : {
-                    'dist/browser/wampy.js': 'src/browser.js'
+                    'dist/browser/wampy.js': 'src/browser.js',
+                    'dist/browser/msgpacksrlzr.js': 'src/msgpacksrlzrbrowser.js'
                 }
             }
         },
@@ -38,7 +39,8 @@ module.exports = function (grunt) {
             },
             dist4Browser: {
                 files: {
-                    'dist/browser/wampy.min.js': ['dist/browser/wampy.js']
+                    'dist/browser/wampy.min.js': ['dist/browser/wampy.js'],
+                    'dist/browser/msgpacksrlzr.min.js': ['dist/browser/msgpacksrlzr.js']
                 }
             }
         },
@@ -52,7 +54,11 @@ module.exports = function (grunt) {
         },
         concat: {
             concatWampyMsgpack: {
-                src: ['dist/browser/msgpack5.min.js', 'dist/browser/wampy.min.js'],
+                src: [
+                    'dist/browser/msgpack5.min.js',
+                    'dist/browser/msgpacksrlzr.min.js',
+                    'dist/browser/wampy.min.js'
+                ],
                 dest: 'dist/browser/wampy-all.min.js'
             }
         },
