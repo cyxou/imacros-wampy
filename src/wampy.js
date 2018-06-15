@@ -1685,6 +1685,14 @@ class Wampy {
                     }
                 }
 
+                if (advancedOptions.hasOwnProperty('force_reregister')) {
+                    if (advancedOptions.force_reregister) {
+                        options.force_reregister = true;
+                    } else {
+                        err = true;
+                    }
+                }
+
             } else {
                 err = true;
             }
